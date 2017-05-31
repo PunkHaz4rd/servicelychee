@@ -1,0 +1,9 @@
+{
+  "name": "servicelychee",
+  "version": "0.0.1",
+  "description": "util library containing common service implementations like gulp class or index",
+  "main": "index.js",
+  "repository": "https://github.com/tgorka/servicelychee.git",
+  "author": "Tomasz Gorka <tomasz@gorka.org.pl>",
+  "license": "MIT"
+}
