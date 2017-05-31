@@ -8,7 +8,7 @@ import * as sourcemaps from "gulp-sourcemaps";
 
 
 @Gulpclass()
-export class Gulpfile {
+export default class Gulpfile {
 
     @Task("clean")
     clean(cb: Function) {

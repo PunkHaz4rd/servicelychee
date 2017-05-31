@@ -1,8 +1,6 @@
 "use strict";
-function __export(m) {
-    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-}
 Object.defineProperty(exports, "__esModule", { value: true });
-__export(require("./lib/gulpclass"));
+var gulpclass_1 = require("./lib/gulpclass");
+exports.default = gulpclass_1.default;
 
 //# sourceMappingURL=index.js.map

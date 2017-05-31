@@ -1,1 +1,1 @@
-export * from "./lib/gulpclass";
+export {default as default} from "./lib/gulpclass";
