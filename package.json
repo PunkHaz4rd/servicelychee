@@ -3,7 +3,24 @@
   "version": "0.0.1",
   "description": "util library containing common service implementations like gulp class or index",
   "main": "index.js",
+  "scripts": {
+    "start": "node ./node_modules/.bin/gulp",
+    "build": "node ./node_modules/.bin/gulp build",
+    "clean": "node ./node_modules/.bin/gulp clean",
+    "test": "node ./node_modules/.bin/gulp test"
+  },
   "repository": "https://github.com/tgorka/servicelychee.git",
   "author": "Tomasz Gorka <tomasz@gorka.org.pl>",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@types/gulp": "^4.0.3",
+    "gulp": "^3.9.1",
+    "gulpclass": "^0.1.2"
+  },
+  "devDependencies": {
+    "child_process": "^1.0.2",
+    "del": "^2.2.2",
+    "gulp-sourcemaps": "^2.6.0",
+    "gulp-typescript": "^3.1.7"
+  }
 }
