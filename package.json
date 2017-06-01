@@ -5,6 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node ./node_modules/.bin/gulp",
+    "dev": "node ./node_modules/.bin/gulp dev",
+    "run": "node ./node_modules/.bin/gulp run",
     "build": "node ./node_modules/.bin/gulp build",
     "clean": "node ./node_modules/.bin/gulp clean",
     "test": "node ./node_modules/.bin/gulp test"
@@ -19,7 +21,11 @@
     "gulp": "^3.9.1",
     "gulp-sourcemaps": "^2.6.0",
     "gulp-typescript": "^3.1.7",
-    "gulpclass": "^0.1.2"
+    "gulp-watch": "^4.3.11",
+    "gulpclass": "^0.1.2",
+    "pm2": "^2.4.6"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "servicelychee": "https://github.com/tgorka/servicelychee"
+  }
 }
