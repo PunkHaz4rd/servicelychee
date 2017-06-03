@@ -1,2 +1,3 @@
-require("servicelychee");
-//require(".");
+//require("servicelychee");
+//require(".").default.forConfig();
+require(".");

@@ -9,8 +9,63 @@ import * as sourcemaps from "gulp-sourcemaps";
 import * as pm2 from "pm2";
 
 
+export interface PortConfig {
+    web: number;
+    debug: number;
+}
+
+/**
+ * Configuration for the gulp, web server, running env, etc
+ */
+export interface GulpConfig {
+    /**
+     * Name of the app that will be present in the process table of the PM2 and in the logs
+     */
+    name: string,
+    /**
+     * Environment: development, production, testing
+     * When starting with word "dev" it"s a development env with debug mode and live watch reloading.
+     */
+    environment?: string;
+    /**
+     * Web server process numbers
+     * Set by Heroku or -1 to scale to max cpu core -1
+     */
+    webConcurrency?: number;
+    /**
+     * Max RAM memory when server will be reloaded
+     */
+    maxMemory?: number;
+    /**
+     * Ports to open the web, debug
+     */
+    port?: PortConfig;
+}
+
+/**
+ * Default values for the configuration
+ * @type {GulpConfig}
+ */
+export const DEFAULT_CONFIG: GulpConfig = {
+    name: "app",
+    environment: process.env.NODE_ENV || "production",
+    webConcurrency: process.env.WEB_CONCURRENCY || -1,
+    maxMemory: process.env.WEB_MEMORY || 512,
+    port: {
+        web: process.env.PORT || 8080,
+        debug: process.env.PORT_DEBUG || 5050,
+    },
+};
+
 @Gulpclass()
 export default class Gulpfile {
+
+    public static forConfig(config: GulpConfig = null): Function {
+        if (config) {
+            Object.keys(config).forEach(key => DEFAULT_CONFIG[key] = config[key]);
+        }
+        return Gulpfile;
+    };
 
     // PATHS
     public tsSrc: Array<string> = ["./**/*.ts"];
@@ -19,17 +74,12 @@ export default class Gulpfile {
     public src: Array<string> = [...this.tsSrc, ...this.resourceSrc];
     public runningSrc: Array<string> = [...this.jsSrc, ...this.resourceSrc];
 
-    // ENV
-    public environment: string = process.env.NODE_ENV || "production";
-
     // CONFIG
     protected tsProject: any = ts.createProject("./tsconfig.json");
-
-    protected webConcurrency: number = process.env.WEB_CONCURRENCY || -1; // Set by Heroku or -1 to scale to max cpu core -1
-    protected maxMemory: number = process.env.WEB_MEMORY || 512;// " " "
+    protected config: GulpConfig = DEFAULT_CONFIG;
 
     public isDevMode(): boolean {
-        return this.environment.startsWith("dev");
+        return this.config.environment.startsWith("dev");
     }
 
     @Task("clean")
@@ -62,67 +112,57 @@ export default class Gulpfile {
 
     @Task("build")
     public async build(): Promise<void> {
+        console.log(`build for app: ${this.config.name}`);
         return this.typescript();
+    }
+
+    @Task("server:stop")
+    public async serverStop(): Promise<void> {
+        return pm2.killDaemon();
     }
 
     @Task("server")
     public async server(): Promise<void> {
-        /*return pm2.connect((err) => {
-         if (err) {
-         console.error(err);
-         process.exit(2);
-         }
 
-         let pm2Options: any = {
-         name: "service",
-         script: "./index.js", // Script to be run
-         exec_mode: "cluster", // Allows your app to be clustered
-         //instances : 4, // Optional: Scales your app by 4
-         //max_memory_restart : "100M" // Optional: Restarts your app if it reaches 100Mo
-         source_map_support: true,
-         };
-         if (this.isDevMode()) {
-         pm2Options.watch = this.src;
-         pm2Options.ignore_watch = ["node_modules", ...this.tsSrc];
-         pm2Options.watch_options = {
-         followSymlinks: false
-         };
-         }
-
-         pm2.start(pm2Options, (err, apps) => {
-         pm2.disconnect();   // Disconnects from PM2
-         if (err) throw err;
-         });
-         });*/
-
-        let MACHINE_NAME = 'hk1';
-        let PRIVATE_KEY = 'XXXXX'; // Keymetrics Private key
-        let PUBLIC_KEY = 'XXXXX'; // Keymetrics Public  key
+        let MACHINE_NAME = "hk1";
+        let PRIVATE_KEY = "XXXXX"; // Keymetrics Private key
+        let PUBLIC_KEY = "XXXXX"; // Keymetrics Public  key
 
         return pm2.connect(() => {
             pm2.start({
-                script: './index.js',
-                name: 'production-app', // ----> THESE ATTRIBUTES ARE OPTIONAL:
-                exec_mode: 'cluster', // ----> https://github.com/Unitech/PM2/blob/master/ADVANCED_README.md#schema
-                instances: this.webConcurrency,
-                max_memory_restart: this.maxMemory + 'M', // Auto-restart if process takes more than XXmo
+                script: ".",
+                name: this.config.name, // ----> THESE ATTRIBUTES ARE OPTIONAL:
+                exec_mode: (this.isDevMode()) ? "fork" : "cluster", // ----> https://github.com/Unitech/PM2/blob/master/ADVANCED_README.md#schema
+                instances: (this.isDevMode()) ? 1 : this.config.webConcurrency,
+                max_memory_restart: this.config.maxMemory + "M", // Auto-restart if process takes more than XXmo
+                source_map_support: true,
                 env: {  // If needed declare some environment variables
-                    "NODE_ENV": this.environment,
+                    "NODE_ENV": this.config.environment,
+                    "PORT": this.config.port.web,
                 },
-                post_update: ["npm install"] // Commands to execute once we do a pull from Keymetrics
+                interpreterArgs: [`--debug=${this.config.port.debug}`],
+                post_update: ["npm install"], // Commands to execute once we do a pull from Keymetrics
+                watch: (this.isDevMode()) ? this.src : undefined,
+                ignore_watch: (this.isDevMode()) ? ["node_modules", ...this.tsSrc] : undefined,
+                watch_options: (this.isDevMode()) ? {
+                    followSymlinks: false
+                } : undefined,
             }, () => {
                 //pm2.interact(PRIVATE_KEY, PUBLIC_KEY, MACHINE_NAME, () => {
 
                 // Display logs in standard output
                 pm2.launchBus((err, bus) => {
-                    console.log('[PM2] Log streaming started');
+                    console.log("[PM2] Log streaming started");
 
-                    bus.on('log:out', function (packet) {
-                        console.log('[App:%s] %s', packet.process.name, packet.data);
+                    bus.on("log:out", (packet) => {
+                        console.log("[App:%s] %s", packet.process.name, packet.data);
                     });
 
-                    bus.on('log:err', function (packet) {
-                        console.error('[App:%s][Err] %s', packet.process.name, packet.data);
+                    bus.on("log:err", (packet) => {
+                        console.error("[App:%s][Err] %s", packet.process.name, packet.data);
+                        if (this.isDevMode()) { // kill app on error in dev mode
+                            pm2.killDaemon();
+                        }
                     });
                 });
 
@@ -139,7 +179,7 @@ export default class Gulpfile {
 
     @Task("dev")
     public async dev(): Promise<void> {
-        this.environment = process.env.NODE_ENV || "development";
+        this.config.environment = process.env.NODE_ENV || "development";
         return this.build()
             .then(this.watch.bind(this));
     }
