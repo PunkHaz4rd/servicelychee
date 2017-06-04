@@ -203,25 +203,30 @@ export default class Gulpfile {
 
     @Task("integration:test")
     public async integrationTest(): Promise<void> {
-        return gulp.src(this.config.paths.integrationTests, { read: false })
-            .pipe(mocha({
-                reporter: 'spec',
-                //globals: { },
-            }));
+        return this.typescript().then(() => {
+            gulp.src(this.config.paths.integrationTests, { read: false })
+                .pipe(mocha({
+                    reporter: 'spec',
+                    //globals: { },
+                }));
+        });
     }
 
     @Task("unit:test")
     public async unitTest(): Promise<void> {
-        return gulp.src(this.config.paths.unitTests, { read: false })
-            .pipe(mocha({
-                reporter: 'spec',
-                //globals: { },
-            }));
+        return this.typescript().then(() => {
+            gulp.src(this.config.paths.unitTests, { read: false })
+                .pipe(mocha({
+                    reporter: 'spec',
+                    //globals: { },
+                }));
+        });
     }
 
     @Task("test")
     public async test(): Promise<void> {
-        return this.unitTest().then(this.integrationTest.bind(this));
+        return this.unitTest()
+            .then(this.integrationTest.bind(this));
         //spawn("node", ["."], { stdio: "inherit" });
     }
 
