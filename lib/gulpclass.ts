@@ -206,7 +206,7 @@ export default class Gulpfile {
         return gulp.src(this.config.paths.integrationTests, { read: false })
             .pipe(mocha({
                 reporter: 'spec',
-                globals: { },
+                //globals: { },
             }));
     }
 
@@ -215,7 +215,7 @@ export default class Gulpfile {
         return gulp.src(this.config.paths.unitTests, { read: false })
             .pipe(mocha({
                 reporter: 'spec',
-                globals: { },
+                //globals: { },
             }));
     }
 
