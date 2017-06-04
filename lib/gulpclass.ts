@@ -5,13 +5,24 @@ import * as gulp from "gulp";
 import * as del from "del";
 import * as ts from "gulp-typescript";
 import * as watch from "gulp-watch";
+import * as mocha from "gulp-mocha";
 import * as sourcemaps from "gulp-sourcemaps";
 import * as pm2 from "pm2";
+import * as _ from "lodash";
 
 
 export interface PortConfig {
     web: number;
     debug: number;
+}
+
+export interface PathConfig {
+    typescript: string[];
+    generated: string[];
+    resources: string[];
+    integrationTests: string[];
+    unitTests: string[];
+    tsConfig: string;
 }
 
 /**
@@ -40,6 +51,10 @@ export interface GulpConfig {
      * Ports to open the web, debug
      */
     port?: PortConfig;
+    /**
+     * Paths for the sources and configurations.
+     */
+    paths?: PathConfig;
 }
 
 /**
@@ -55,28 +70,42 @@ export const DEFAULT_CONFIG: GulpConfig = {
         web: process.env.PORT || 8080,
         debug: process.env.PORT_DEBUG || 5050,
     },
+    paths: {
+        typescript: ["./**/*.ts"],
+        generated: ["./**/*.js"],
+        resources: ["./**/*.json", "./**/*.yml", "./*.lock"],
+        integrationTests: ["./**/*.spec.js"],
+        unitTests: ["./**/*.test.js"],
+        tsConfig: "./tsconfig.json",
+    }
 };
 
 @Gulpclass()
 export default class Gulpfile {
 
+    /**
+     * Update default configuration before using it
+     * @param config to change the default
+     * @return {Gulpfile} class of the gulpfile
+     */
     public static forConfig(config: GulpConfig = null): Function {
         if (config) {
-            Object.keys(config).forEach(key => DEFAULT_CONFIG[key] = config[key]);
+
+            Object.keys(config).forEach(key => DEFAULT_CONFIG[key] = _.merge(config[key], DEFAULT_CONFIG[key]));
         }
         return Gulpfile;
     };
 
-    // PATHS
-    public tsSrc: Array<string> = ["./**/*.ts"];
-    public jsSrc: Array<string> = ["./**/*.ts"];
-    public resourceSrc: Array<string> = ["./**/*.json", "./**/*.yml", "./*.lock"];
-    public src: Array<string> = [...this.tsSrc, ...this.resourceSrc];
-    public runningSrc: Array<string> = [...this.jsSrc, ...this.resourceSrc];
-
     // CONFIG
-    protected tsProject: any = ts.createProject("./tsconfig.json");
     protected config: GulpConfig = DEFAULT_CONFIG;
+
+    // PATHS
+    public src: string[] = [...this.config.paths.typescript, ...this.config.paths.resources];
+    public ignoreRunningSrc: string[] = ["node_modules", ...this.config.paths.typescript];
+    public runningSrc: string[] = [...this.config.paths.generated, ...this.config.paths.resources];
+
+    // PRE-CONFIG
+    protected tsProject: any = ts.createProject(this.config.paths.tsConfig);
 
     public isDevMode(): boolean {
         return this.config.environment.startsWith("dev");
@@ -91,7 +120,7 @@ export default class Gulpfile {
 
     @Task("watch")
     public async watch(): Promise<void> {
-        return watch(this.tsSrc, async (): Promise<void> => {
+        return watch(this.config.paths.typescript, async (): Promise<void> => {
             console.log("TypeScript source changed. Transpiling...");
             return this.typescript();
         });
@@ -142,8 +171,8 @@ export default class Gulpfile {
                 },
                 interpreterArgs: [`--debug=${this.config.port.debug}`],
                 post_update: ["npm install"], // Commands to execute once we do a pull from Keymetrics
-                watch: (this.isDevMode()) ? this.src : undefined,
-                ignore_watch: (this.isDevMode()) ? ["node_modules", ...this.tsSrc] : undefined,
+                watch: (this.isDevMode()) ? this.runningSrc : undefined,
+                ignore_watch: (this.isDevMode()) ? this.ignoreRunningSrc : undefined,
                 watch_options: (this.isDevMode()) ? {
                     followSymlinks: false
                 } : undefined,
@@ -172,9 +201,28 @@ export default class Gulpfile {
 
     }
 
+    @Task("integration:test")
+    public async integrationTest(): Promise<void> {
+        return gulp.src(this.config.paths.integrationTests, { read: false })
+            .pipe(mocha({
+                reporter: 'spec',
+                globals: { },
+            }));
+    }
+
+    @Task("unit:test")
+    public async unitTest(): Promise<void> {
+        return gulp.src(this.config.paths.unitTests, { read: false })
+            .pipe(mocha({
+                reporter: 'spec',
+                globals: { },
+            }));
+    }
+
     @Task("test")
     public async test(): Promise<void> {
-        spawn("node", ["."], { stdio: "inherit" });
+        return this.unitTest().then(this.integrationTest.bind(this));
+        //spawn("node", ["."], { stdio: "inherit" });
     }
 
     @Task("dev")
