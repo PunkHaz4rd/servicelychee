@@ -26,6 +26,22 @@ export interface PathConfig {
     index: string;
 }
 
+export interface ServerConfig {
+    /**
+     * Web server process numbers
+     * Set by Heroku or -1 to scale to max cpu core -1
+     */
+    concurrency: number;
+    /**
+     * Max RAM memory when server will be reloaded
+     */
+    maxMemory: number;
+    /**
+     * Should server be run in daemon mode
+     */
+    daemon: boolean;
+}
+
 /**
  * Configuration for the gulp, web server, running env, etc
  */
@@ -40,22 +56,17 @@ export interface GulpConfig {
      */
     environment?: string;
     /**
-     * Web server process numbers
-     * Set by Heroku or -1 to scale to max cpu core -1
-     */
-    webConcurrency?: number;
-    /**
-     * Max RAM memory when server will be reloaded
-     */
-    maxMemory?: number;
-    /**
      * Ports to open the web, debug
      */
     port?: PortConfig;
     /**
      * Paths for the sources and configurations.
      */
-    paths?: PathConfig;
+    path?: PathConfig;
+    /**
+     * Config dedicated to the server part of the application that listening on some actions.
+     */
+    server?: ServerConfig;
 }
 
 /**
@@ -65,13 +76,11 @@ export interface GulpConfig {
 export const DEFAULT_CONFIG: GulpConfig = {
     name: "app",
     environment: process.env.NODE_ENV || "production",
-    webConcurrency: process.env.WEB_CONCURRENCY || -1,
-    maxMemory: process.env.WEB_MEMORY || 512,
     port: {
         web: process.env.PORT || 8080,
         debug: process.env.PORT_DEBUG || 5050,
     },
-    paths: {
+    path: {
         typescript: ["./**/*.ts"],
         generated: ["./**/*.js"],
         resources: ["./**/*.json", "./**/*.yml", "./*.lock"],
@@ -79,7 +88,12 @@ export const DEFAULT_CONFIG: GulpConfig = {
         unitTests: ["./**/*.test.js"],
         tsConfig: "./tsconfig.json",
         index: ".",
-    }
+    },
+    server: {
+        concurrency: process.env.WEB_CONCURRENCY || -1,
+        maxMemory: process.env.WEB_MEMORY || 512,
+        daemon: false,
+    },
 };
 
 @Gulpclass()
@@ -102,12 +116,12 @@ export default class Gulpfile {
     protected config: GulpConfig = DEFAULT_CONFIG;
 
     // PATHS
-    public src: string[] = [...this.config.paths.typescript, ...this.config.paths.resources];
-    public ignoreRunningSrc: string[] = ["node_modules", ...this.config.paths.typescript];
-    public runningSrc: string[] = [...this.config.paths.generated, ...this.config.paths.resources];
+    public src: string[] = [...this.config.path.typescript, ...this.config.path.resources];
+    public ignoreRunningSrc: string[] = ["node_modules", ...this.config.path.typescript];
+    public runningSrc: string[] = [...this.config.path.generated, ...this.config.path.resources];
 
     // PRE-CONFIG
-    protected tsProject: any = ts.createProject(this.config.paths.tsConfig);
+    protected tsProject: any = ts.createProject(this.config.path.tsConfig);
 
     public isDevMode(): boolean {
         return this.config.environment.startsWith("dev");
@@ -122,7 +136,7 @@ export default class Gulpfile {
 
     @Task("watch")
     public async watch(): Promise<void> {
-        return watch(this.config.paths.typescript, async (): Promise<void> => {
+        return watch(this.config.path.typescript, async (): Promise<void> => {
             console.log("TypeScript source changed. Transpiling...");
             return this.typescript();
         });
@@ -159,13 +173,18 @@ export default class Gulpfile {
         let PRIVATE_KEY = "XXXXX"; // Keymetrics Private key
         let PUBLIC_KEY = "XXXXX"; // Keymetrics Public  key
 
-        return pm2.connect(() => {
+        return pm2.connect(this.config.server.daemon, (err: any): void => {
+            if (err) {
+                console.error(err);
+                process.exit(2);
+            }
+
             pm2.start({
-                script: this.config.paths.index,
+                script: this.config.path.index,
                 name: this.config.name, // ----> THESE ATTRIBUTES ARE OPTIONAL:
                 exec_mode: (this.isDevMode()) ? "fork" : "cluster", // ----> https://github.com/Unitech/PM2/blob/master/ADVANCED_README.md#schema
-                instances: (this.isDevMode()) ? 1 : this.config.webConcurrency,
-                max_memory_restart: this.config.maxMemory + "M", // Auto-restart if process takes more than XXmo
+                instances: (this.isDevMode()) ? 1 : this.config.server.concurrency,
+                max_memory_restart: this.config.server.maxMemory + "M", // Auto-restart if process takes more than XXmo
                 source_map_support: true,
                 env: {  // If needed declare some environment variables
                     "NODE_ENV": this.config.environment,
@@ -178,18 +197,20 @@ export default class Gulpfile {
                 watch_options: (this.isDevMode()) ? {
                     followSymlinks: false
                 } : undefined,
-            }, () => {
+            }, (err: any, apps): void => {
+                if (err) throw err;
+
                 //pm2.interact(PRIVATE_KEY, PUBLIC_KEY, MACHINE_NAME, () => {
 
                 // Display logs in standard output
-                pm2.launchBus((err, bus) => {
+                pm2.launchBus((err: any, bus): void => {
                     console.log("[PM2] Log streaming started");
 
-                    bus.on("log:out", (packet) => {
+                    bus.on("log:out", (packet): void => {
                         console.log("[App:%s] %s", packet.process.name, packet.data);
                     });
 
-                    bus.on("log:err", (packet) => {
+                    bus.on("log:err", (packet): void => {
                         console.error("[App:%s][Err] %s", packet.process.name, packet.data);
                         //if (this.isDevMode()) { // kill app on error in dev mode
                         //    pm2.killDaemon();
@@ -206,7 +227,7 @@ export default class Gulpfile {
     @Task("integration:test")
     public async integrationTest(): Promise<void> {
         return this.typescript().then(() => {
-            gulp.src(this.config.paths.integrationTests, { read: false })
+            gulp.src(this.config.path.integrationTests, { read: false })
                 .pipe(mocha({
                     reporter: 'spec',
                     //globals: { },
@@ -217,7 +238,7 @@ export default class Gulpfile {
     @Task("unit:test")
     public async unitTest(): Promise<void> {
         return this.typescript().then(() => {
-            gulp.src(this.config.paths.unitTests, { read: false })
+            gulp.src(this.config.path.unitTests, { read: false })
                 .pipe(mocha({
                     reporter: 'spec',
                     //globals: { },
