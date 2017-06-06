@@ -169,7 +169,7 @@ export default class Gulpfile {
                     "NODE_ENV": this.config.environment,
                     "PORT": this.config.port.web,
                 },
-                interpreterArgs: [`--debug=${this.config.port.debug}`],
+                interpreterArgs: [`--insepct=${this.config.port.debug}`],
                 post_update: ["npm install"], // Commands to execute once we do a pull from Keymetrics
                 watch: (this.isDevMode()) ? this.runningSrc : undefined,
                 ignore_watch: (this.isDevMode()) ? this.ignoreRunningSrc : undefined,
