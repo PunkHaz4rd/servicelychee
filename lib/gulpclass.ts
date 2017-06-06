@@ -23,6 +23,7 @@ export interface PathConfig {
     integrationTests: string[];
     unitTests: string[];
     tsConfig: string;
+    index: string;
 }
 
 /**
@@ -77,6 +78,7 @@ export const DEFAULT_CONFIG: GulpConfig = {
         integrationTests: ["./**/*.spec.js"],
         unitTests: ["./**/*.test.js"],
         tsConfig: "./tsconfig.json",
+        index: ".",
     }
 };
 
@@ -159,7 +161,7 @@ export default class Gulpfile {
 
         return pm2.connect(() => {
             pm2.start({
-                script: ".",
+                script: this.config.paths.index,
                 name: this.config.name, // ----> THESE ATTRIBUTES ARE OPTIONAL:
                 exec_mode: (this.isDevMode()) ? "fork" : "cluster", // ----> https://github.com/Unitech/PM2/blob/master/ADVANCED_README.md#schema
                 instances: (this.isDevMode()) ? 1 : this.config.webConcurrency,
@@ -169,7 +171,7 @@ export default class Gulpfile {
                     "NODE_ENV": this.config.environment,
                     "PORT": this.config.port.web,
                 },
-                interpreterArgs: [`--insepct=${this.config.port.debug}`],
+                interpreterArgs: [`--inspect=${this.config.port.debug}`],
                 post_update: ["npm install"], // Commands to execute once we do a pull from Keymetrics
                 watch: (this.isDevMode()) ? this.runningSrc : undefined,
                 ignore_watch: (this.isDevMode()) ? this.ignoreRunningSrc : undefined,
