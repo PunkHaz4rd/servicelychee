@@ -24,6 +24,7 @@ export interface PathConfig {
     unitTests: string[];
     tsConfig: string;
     index: string;
+    workingDir: string;
 }
 
 export interface ServerConfig {
@@ -88,6 +89,7 @@ export const DEFAULT_CONFIG: GulpConfig = {
         unitTests: ["./**/*.test.js"],
         tsConfig: "./tsconfig.json",
         index: ".",
+        workingDir: ".",
     },
     server: {
         concurrency: process.env.WEB_CONCURRENCY || -1,
@@ -190,6 +192,7 @@ export default class Gulpfile {
                     "NODE_ENV": this.config.environment,
                     "PORT": this.config.port.web,
                 },
+                cwd: this.config.path.workingDir,
                 interpreterArgs: [`--inspect=${this.config.port.debug}`],
                 post_update: ["npm install"], // Commands to execute once we do a pull from Keymetrics
                 watch: (this.isDevMode()) ? this.runningSrc : undefined,
@@ -198,7 +201,10 @@ export default class Gulpfile {
                     followSymlinks: false
                 } : undefined,
             }, (err: any, apps): void => {
-                if (err) throw err;
+                if (err) {
+                    console.error(err);
+                    throw err;
+                }
 
                 //pm2.interact(PRIVATE_KEY, PUBLIC_KEY, MACHINE_NAME, () => {
 
