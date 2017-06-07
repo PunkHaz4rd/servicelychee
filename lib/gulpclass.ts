@@ -108,9 +108,9 @@ export default class Gulpfile {
      */
     public static forConfig(config: GulpConfig = null): Function {
         if (config) {
-
-            Object.keys(config).forEach(key => DEFAULT_CONFIG[key] = _.merge(config[key], DEFAULT_CONFIG[key]));
+            _.merge(DEFAULT_CONFIG, config);
         }
+        console.log(`Start working for config: ${JSON.stringify(DEFAULT_CONFIG)}`);
         return Gulpfile;
     };
 
