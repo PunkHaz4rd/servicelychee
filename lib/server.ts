@@ -39,10 +39,10 @@ export class Server {
         // errors thrown with the typescript files not generated js
         sourceMapSupport.install();
         this.microplum = new Service({
-            app: config.app || "app",
+            app: this.config.app || "app",
             version: 2,
-            amqpUrl: config.amqp.url,
-            debugUserId: config.debugUserId,
+            amqpUrl: this.config.amqp.url,
+            debugUserId: this.config.debugUserId,
         });
         this.microplum.client();
         this.dbConnection();
