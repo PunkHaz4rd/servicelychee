@@ -493,7 +493,7 @@ debug-fabulous@0.1.X:
     debug "2.X"
     object-assign "4.1.0"
 
-debug@*, debug@2.6.8, debug@2.X, debug@^2.2.0, debug@^2.3.2, debug@^2.6, debug@^2.6.3:
+debug@*, debug@2.6.8, debug@^2.2.0, debug@^2.6, debug@^2.6.3:
   version "2.6.8"
   resolved "https://registry.yarnpkg.com/debug/-/debug-2.6.8.tgz#e731531ca2ede27d188222427da17821d68ff4fc"
   dependencies:
@@ -505,7 +505,7 @@ debug@2.6.0:
   dependencies:
     ms "0.7.2"
 
-debug@2.6.7:
+debug@2.6.7, debug@2.X, debug@^2.3.2:
   version "2.6.7"
   resolved "https://registry.yarnpkg.com/debug/-/debug-2.6.7.tgz#92bad1f6d05bbb6bba22cca88bcd0ec894c2861e"
   dependencies:
@@ -1756,7 +1756,7 @@ micromatch@^2.1.5, micromatch@^2.3.7:
 
 "microplum@https://github.com/tgorka/microplum":
   version "0.1.0"
-  resolved "https://github.com/tgorka/microplum#7701fe7f4903bc5ce53c1b8c7434388edb974492"
+  resolved "https://github.com/tgorka/microplum#2dcd764333f5626b6e09fc7364c8a41f9c089aea"
   dependencies:
     "@types/lodash" "^4.14.64"
     "@types/seneca" "^2.1.6"
