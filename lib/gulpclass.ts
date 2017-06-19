@@ -177,7 +177,7 @@ export default class Gulpfile {
 
         return pm2.connect(this.config.server.daemon, (err: any): void => {
             if (err) {
-                console.error(err);
+                console.error("[PM2]:"+err);
                 process.exit(2);
             }
 
@@ -216,6 +216,7 @@ export default class Gulpfile {
                     });
 
                     bus.on("log:err", (packet): void => {
+                        console.log("[PM2] packet", packet);
                         console.error("[App:%s][Err] %s", packet.process.name, packet.data);
                         //if (this.isDevMode()) { // kill app on error in dev mode
                         //    pm2.killDaemon();
