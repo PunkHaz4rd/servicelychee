@@ -2,7 +2,7 @@ import { PlumFacade, ValidationPlumError } from "microplum";
 import { Document, Model } from "mongoose";
 
 
-export class RestFacade<T extends Document> extends PlumFacade {
+class DocumentFacade<T extends Document> extends PlumFacade {
     constructor(public Schema: Model, act?: (args: any) => Promise<any>, args?: { [key: string]: any }) {
         super(act, args);
     }
@@ -161,5 +161,9 @@ export class RestFacade<T extends Document> extends PlumFacade {
     public async clean(): Promise<T[]> {
         return this.remove({});
     }
+
+}
+
+export class DatabaseFacade<T> extends DocumentFacade<T & Document> {
 
 }
