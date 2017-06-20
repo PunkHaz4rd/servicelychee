@@ -272,6 +272,14 @@ export default class Gulpfile {
             .then(this.server.bind(this));
     }
 
+    @Task("run:server")
+    public async runServer(): Promise<void> {
+        return this.clean()
+            .then(this.build.bind(this))
+            .then(this.server.bind(this));
+    }
+
+
     @SequenceTask()
     public default(): Array<string> {
         return ["clean", "build", "server"];

@@ -1756,7 +1756,7 @@ micromatch@^2.1.5, micromatch@^2.3.7:
 
 "microplum@https://github.com/tgorka/microplum":
   version "0.1.0"
-  resolved "https://github.com/tgorka/microplum#2dcd764333f5626b6e09fc7364c8a41f9c089aea"
+  resolved "https://github.com/tgorka/microplum#908b66a2e6e85b4b167dd4b5456b3e90254d2767"
   dependencies:
     "@types/lodash" "^4.14.64"
     "@types/seneca" "^2.1.6"
