@@ -131,9 +131,7 @@ export default class Gulpfile {
 
     @Task("clean")
     public async clean(): Promise<void> {
-        return new Promise<void>((resolve, reject): void => {
-            del(["./lib/**/*.js", "./gulpclass.js", "./**/*.map"], resolve);
-        });
+        return del(["./lib/**/*.js", "./**/*.map"]);
     }
 
     @Task("watch")
@@ -274,14 +272,13 @@ export default class Gulpfile {
 
     @Task("run:server")
     public async runServer(): Promise<void> {
-        return this.clean()
-            .then(this.build.bind(this))
-            .then(this.server.bind(this));
+        await this.build();
+        await this.server();
     }
 
 
     @SequenceTask()
     public default(): Array<string> {
-        return ["clean", "build", "server"];
+        return ["clean", "run:server"];
     }
 }
