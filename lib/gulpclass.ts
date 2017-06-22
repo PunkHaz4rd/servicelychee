@@ -220,7 +220,6 @@ export default class Gulpfile {
                     });
 
                     bus.on("log:err", (packet): void => {
-                        console.log("[PM2] packet", packet);
                         console.error("[App:%s][Err] %s", packet.process.name, packet.data);
                         //if (this.isDevMode()) { // kill app on error in dev mode
                         //    pm2.killDaemon();
