@@ -38,6 +38,10 @@ export interface ServerConfig {
      */
     maxMemory: number;
     /**
+     * The maximum number of times in a row a script will be restarted if it exits in less than minUptime
+     */
+    maxRestarts: number;
+    /**
      * Should server be run in daemon mode
      */
     daemon: boolean;
@@ -94,6 +98,7 @@ export const DEFAULT_CONFIG: GulpConfig = {
     server: {
         concurrency: process.env.WEB_CONCURRENCY || -1,
         maxMemory: process.env.WEB_MEMORY || 512,
+        maxRestarts: 5,
         daemon: false,
     },
 };
@@ -185,6 +190,7 @@ export default class Gulpfile {
                 exec_mode: (this.isDevMode()) ? "fork" : "cluster", // ----> https://github.com/Unitech/PM2/blob/master/ADVANCED_README.md#schema
                 instances: (this.isDevMode()) ? 1 : this.config.server.concurrency,
                 max_memory_restart: this.config.server.maxMemory + "M", // Auto-restart if process takes more than XXmo
+                maxRestarts: this.config.server.maxRestarts,
                 source_map_support: true,
                 env: {  // If needed declare some environment variables
                     "NODE_ENV": this.config.environment,

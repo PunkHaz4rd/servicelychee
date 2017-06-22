@@ -2553,15 +2553,24 @@ serve-static@1.12.3:
 
 "servicelychee@https://github.com/tgorka/servicelychee":
   version "0.0.1"
-  resolved "https://github.com/tgorka/servicelychee#31578ee25f50396941c0351572370fc02477b1f9"
+  resolved "https://github.com/tgorka/servicelychee#012e55c0d24e973d0a5f747a53b2b2c35de207dd"
   dependencies:
     "@types/gulp" "^4.0.3"
+    bluebird "^3.5.0"
     child_process "^1.0.2"
     del "^2.2.2"
+    express "^4.15.3"
     gulp "^3.9.1"
+    gulp-mocha "^4.3.1"
     gulp-sourcemaps "^2.6.0"
     gulp-typescript "^3.1.7"
+    gulp-watch "^4.3.11"
     gulpclass "^0.1.2"
+    lodash "^4.17.4"
+    microplum "https://github.com/tgorka/microplum"
+    mongoose "^4.10.5"
+    pm2 "^2.4.6"
+    source-map-support "^0.4.15"
 
 set-blocking@~2.0.0:
   version "2.0.0"
