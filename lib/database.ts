@@ -12,7 +12,7 @@ class DocumentFacade<T extends Document> extends PlumFacade {
     }
 
     protected async _sync(model: T): Promise<void> {
-        if (!model._syncId) {
+        if (!this.args.noSync && model._syncId == null) {
             let error = await model.validate();
             if (error) {
                 throw new ValidationPlumError(error);
@@ -27,13 +27,23 @@ class DocumentFacade<T extends Document> extends PlumFacade {
     }
 
     protected _doSync(update: { [key: string]: any }): boolean {
-        return !this.args.noSync || Object.keys(update)
+        return !this.args.noSync ||  Object.keys(update)
                 .filter(key => !key.startsWith('_'))
                 .length > 0;
     }
 
     protected _name(): string {
         return this.args.role;
+    }
+
+    protected prepareInputForWriting(input: { [key: string]: any }): void {
+        input._modified = Date.now();
+        if (this._doSync(input)) {
+            input._syncId = (this.args.syncId) ? this.args.syncId : null;
+            input._linkId = (this.args.linkId) ? this.args.linkId : null;
+        } else {
+            this.args.noSync = true;
+        }
     }
 
     public async create(input: { [key: string]: any }): Promise<T> {
@@ -44,13 +54,7 @@ class DocumentFacade<T extends Document> extends PlumFacade {
     }
 
     public async update(conditions: { [key: string]: any }, update: { [key: string]: any }): Promise<T[]> {
-        update._modified = Date.now();
-        if (this.args.syncId) {
-            update._syncId = this.args.syncId;
-        } else if (this._doSync(update)) {
-            update._syncId = null;
-        }
-
+        this.prepareInputForWriting(update);
         let models: T[] = await this.find(conditions);
         return Promise.all(models.map(async model => {
             model.set(update);
@@ -64,13 +68,7 @@ class DocumentFacade<T extends Document> extends PlumFacade {
     }
 
     public async updateOne(conditions: { [key: string]: any }, update: { [key: string]: any }): Promise<T> {
-        update._modified = Date.now();
-        if (this.args.syncId) {
-            update._syncId = this.args.syncId;
-        } else if (this._doSync(update)) {
-            update._syncId = null;
-        }
-
+        this.prepareInputForWriting(update);
         let model: T = await this.findOne(conditions);
         if (model) {
             model.set(update);
@@ -86,13 +84,7 @@ class DocumentFacade<T extends Document> extends PlumFacade {
     }
 
     public async updateById(id: string, update: { [key: string]: any }): Promise<T> {
-        update._modified = Date.now();
-        if (this.args.syncId) {
-            update._syncId = this.args.syncId;
-        } else if (this._doSync(update)) {
-            update._syncId = null;
-        }
-
+        this.prepareInputForWriting(update);
         let model = await this.findById(id);
         if (model) {
             model.set(update);
