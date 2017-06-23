@@ -98,7 +98,7 @@ export const DEFAULT_CONFIG: GulpConfig = {
     server: {
         concurrency: process.env.WEB_CONCURRENCY || -1,
         maxMemory: process.env.WEB_MEMORY || 512,
-        maxRestarts: 5,
+        maxRestarts: 10,
         daemon: false,
     },
 };
