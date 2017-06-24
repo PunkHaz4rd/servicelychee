@@ -7,12 +7,12 @@ class DocumentFacade<T extends Document> extends PlumFacade {
         super(act, args);
     }
 
-    protected async _callSync(id: string, data: {[key:string]:any} = {}): Promise<void> {
+    protected async _callSync(id: string, data: { [key: string]: any } = {}): Promise<void> {
         // empty no sync by default
     }
 
     protected async _sync(model: T): Promise<void> {
-        if (!this.args.noSync && model._syncId == null) {
+        if (this._hasSync() && model._sync == null) {
             let error = await model.validate();
             if (error) {
                 throw new ValidationPlumError(error);
@@ -26,8 +26,12 @@ class DocumentFacade<T extends Document> extends PlumFacade {
         return Promise.resolve();
     }
 
+    protected _hasSync(): boolean {
+        return !this.args.noSync && this.Schema.paths["_sync"];
+    }
+
     protected _doSync(update: { [key: string]: any }): boolean {
-        return !this.args.noSync ||  Object.keys(update)
+        return this._hasSync() && Object.keys(update)
                 .filter(key => !key.startsWith('_'))
                 .length > 0;
     }
@@ -39,15 +43,15 @@ class DocumentFacade<T extends Document> extends PlumFacade {
     protected prepareInputForWriting(input: { [key: string]: any }): void {
         input._modified = Date.now();
         if (this._doSync(input)) {
-            input._syncId = (this.args.syncId) ? this.args.syncId : null;
-            input._linkId = (this.args.linkId) ? this.args.linkId : null;
+            input._sync = (this.args.syncId) ? this.args.syncId : null;
+            input._link = (this.args.linkId) ? this.args.linkId : null;
         } else {
             this.args.noSync = true;
         }
     }
 
     public async create(input: { [key: string]: any }): Promise<T> {
-        input._syncId = (this.args.syncId) ? this.args.syncId : null;
+        input._sync = (this.args.syncId) ? this.args.syncId : null;
         let model = new this.Schema(input);
         await this._sync(model);
         return model.save();
@@ -123,7 +127,7 @@ class DocumentFacade<T extends Document> extends PlumFacade {
     public async remove(conditions: { [key: string]: any } = {}): Promise<T[]> {
         return this.update(conditions, {
             _deactivated: Date.now(),
-            _syncId: (this.args.syncId) ? this.args.syncId : null
+            _sync: (this.args.syncId) ? this.args.syncId : null
         });
         //return this.Schema
         //    .findByIdAndRemove(id)
@@ -133,7 +137,7 @@ class DocumentFacade<T extends Document> extends PlumFacade {
     public async removeOne(conditions: { [key: string]: any } = {}): Promise<T> {
         return this.updateOne(conditions, {
             _deactivated: Date.now(),
-            _syncId: (this.args.syncId) ? this.args.syncId : null
+            _sync: (this.args.syncId) ? this.args.syncId : null
         });
         //return this.Schema
         //    .findByIdAndRemove(id)
@@ -143,7 +147,7 @@ class DocumentFacade<T extends Document> extends PlumFacade {
     public async removeById(id: string): Promise<T> {
         return this.updateById(id, {
             _deactivated: Date.now(),
-            _syncId: (this.args.syncId) ? this.args.syncId : null
+            _sync: (this.args.syncId) ? this.args.syncId : null
         });
         //return this.Schema
         //    .findByIdAndRemove(id)
