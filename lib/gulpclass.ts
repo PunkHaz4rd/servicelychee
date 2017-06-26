@@ -216,8 +216,8 @@ export default class Gulpfile {
                     console.log("[PM2] Log streaming started");
 
                     bus.on("log:out", (packet): void => {
-                        // do not log all the data
-                        //console.log("[App:%s] %s", packet.process.name, packet.data);
+                        // stream the logs
+                        console.log("[App:%s] %s", packet.process.name, packet.data);
                     });
 
                     bus.on("log:err", (packet): void => {
