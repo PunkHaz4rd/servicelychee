@@ -187,7 +187,7 @@ export default class Gulpfile {
             pm2.start({
                 script: this.config.path.index,
                 name: `${this.config.name}`, // this is hack to fix the pm2 error for setting this as a reference
-                exec_mode: "fork", //(this.isDevMode()) ? "fork" : "cluster", // ----> https://github.com/Unitech/PM2/blob/master/ADVANCED_README.md#schema
+                exec_mode: (this.isDevMode()) ? "fork" : "cluster", // ----> https://github.com/Unitech/PM2/blob/master/ADVANCED_README.md#schema
                 instances: (this.isDevMode()) ? 1 : this.config.server.concurrency,
                 max_memory_restart: this.config.server.maxMemory + "M", // Auto-restart if process takes more than XXmo
                 maxRestarts: this.config.server.maxRestarts,
@@ -216,7 +216,8 @@ export default class Gulpfile {
                     console.log("[PM2] Log streaming started");
 
                     bus.on("log:out", (packet): void => {
-                        console.log("[App:%s] %s", packet.process.name, packet.data);
+                        // do not log all the data
+                        //console.log("[App:%s] %s", packet.process.name, packet.data);
                     });
 
                     bus.on("log:err", (packet): void => {
