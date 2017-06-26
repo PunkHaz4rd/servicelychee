@@ -187,7 +187,7 @@ export default class Gulpfile {
             pm2.start({
                 script: this.config.path.index,
                 name: `${this.config.name}`, // this is hack to fix the pm2 error for setting this as a reference
-                exec_mode: (this.isDevMode()) ? "fork" : "cluster", // ----> https://github.com/Unitech/PM2/blob/master/ADVANCED_README.md#schema
+                exec_mode: "fork", //(this.isDevMode()) ? "fork" : "cluster", // ----> https://github.com/Unitech/PM2/blob/master/ADVANCED_README.md#schema
                 instances: (this.isDevMode()) ? 1 : this.config.server.concurrency,
                 max_memory_restart: this.config.server.maxMemory + "M", // Auto-restart if process takes more than XXmo
                 maxRestarts: this.config.server.maxRestarts,
