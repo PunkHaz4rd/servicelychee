@@ -206,8 +206,7 @@ export default class Gulpfile {
                 } : undefined,
             }, (err: any, apps): void => {
                 if (err) {
-                    console.error("[PM2 ERR]", err);
-                    //throw err;
+                    throw err;
                 }
 
                 //pm2.interact(PRIVATE_KEY, PUBLIC_KEY, MACHINE_NAME, () => {
