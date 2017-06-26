@@ -3,7 +3,7 @@ import { Document, Model } from "mongoose";
 
 
 class DocumentFacade<T extends Document> extends PlumFacade {
-    constructor(public Schema: Model, act?: (args: any) => Promise<any>, args?: { [key: string]: any }) {
+    constructor(public DbModel: Model, act?: (args: any) => Promise<any>, args?: { [key: string]: any }) {
         super(act, args);
     }
 
@@ -27,7 +27,7 @@ class DocumentFacade<T extends Document> extends PlumFacade {
     }
 
     protected _hasSync(): boolean {
-        return !this.args.noSync && this.Schema.paths["_sync"];
+        return !this.args.noSync && this.DbModel.schema.paths["_sync"];
     }
 
     protected _doSync(update: { [key: string]: any }): boolean {
@@ -52,7 +52,7 @@ class DocumentFacade<T extends Document> extends PlumFacade {
 
     public async create(input: { [key: string]: any }): Promise<T> {
         input._sync = (this.args.syncId) ? this.args.syncId : null;
-        let model = new this.Schema(input);
+        let model = new this.DbModel(input);
         await this._sync(model);
         return model.save();
     }
@@ -105,20 +105,20 @@ class DocumentFacade<T extends Document> extends PlumFacade {
 
     public async find(query: { [key: string]: any } = {}): Promise<T[]> { // returns [] of not found
         query._deactivated = null;
-        return this.Schema
+        return this.DbModel
             .find(query)
             .exec();
     }
 
     public async findOne(query: { [key: string]: any } = {}): Promise<T> { // returns null if not found
         query._deactivated = null;
-        return this.Schema
+        return this.DbModel
             .findOne(query)
             .exec();
     }
 
     public async findById(id: string): Promise<T> {
-        return this.Schema
+        return this.DbModel
             .findById(id)
             .exec()
             .then(doc => (doc && !doc._deactivated) ? doc : null);
@@ -129,7 +129,7 @@ class DocumentFacade<T extends Document> extends PlumFacade {
             _deactivated: Date.now(),
             _sync: (this.args.syncId) ? this.args.syncId : null
         });
-        //return this.Schema
+        //return this.DbModel
         //    .findByIdAndRemove(id)
         //    .exec();
     }
@@ -139,7 +139,7 @@ class DocumentFacade<T extends Document> extends PlumFacade {
             _deactivated: Date.now(),
             _sync: (this.args.syncId) ? this.args.syncId : null
         });
-        //return this.Schema
+        //return this.DbModel
         //    .findByIdAndRemove(id)
         //    .exec();
     }
@@ -149,7 +149,7 @@ class DocumentFacade<T extends Document> extends PlumFacade {
             _deactivated: Date.now(),
             _sync: (this.args.syncId) ? this.args.syncId : null
         });
-        //return this.Schema
+        //return this.DbModel
         //    .findByIdAndRemove(id)
         //    .exec();
     }
