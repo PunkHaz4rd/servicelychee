@@ -3,7 +3,7 @@ import { Document, Model } from "mongoose";
 
 
 class DocumentFacade<T extends Document> extends PlumFacade {
-    constructor(public DbModel: Model, act?: (args: any) => Promise<any>, args?: { [key: string]: any }) {
+    constructor(public DbModel: Model<T>, act?: (args: any) => Promise<any>, args?: { [key: string]: any }) {
         super(act, args);
     }
 
@@ -12,10 +12,10 @@ class DocumentFacade<T extends Document> extends PlumFacade {
     }
 
     protected async _sync(model: T): Promise<void> {
-        if (this._hasSync() && model._sync == null) {
+        if (this._hasSync() && (!model.hasOwnProperty("_sync") || model._sync === null)) {
             let error = await model.validate();
             if (error) {
-                throw new ValidationPlumError(error);
+                throw new ValidationPlumError({}, error.message);
             }
             let data = {};
             if (model && model.toObject) {

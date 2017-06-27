@@ -40,6 +40,7 @@ export class Server {
         sourceMapSupport.install();
         this.microplum = new Service({
             app: this.config.app || "app",
+            roles: this.config.roles || [],
             version: 2,
             amqpUrl: this.config.amqp.url,
             debugUserId: this.config.debugUserId,
