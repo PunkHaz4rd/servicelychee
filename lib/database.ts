@@ -12,10 +12,11 @@ class DocumentFacade<T extends Document> extends PlumFacade {
     }
 
     protected async _sync(model: T): Promise<void> {
-        if (this._hasSync() && (!model.hasOwnProperty("_sync") || model._sync === null)) {
+        if (this._hasSync() && !model["_sync"]) {
             let error = await model.validate();
             if (error) {
-                throw new ValidationPlumError({}, error.message);
+                console.log(`[Validation ERR] DB validation <= ${JSON.stringify(error)}`);
+                throw new ValidationPlumError({}, "Db validation errors");
             }
             let data = {};
             if (model && model.toObject) {
@@ -27,7 +28,7 @@ class DocumentFacade<T extends Document> extends PlumFacade {
     }
 
     protected _hasSync(): boolean {
-        return !this.args.noSync && this.DbModel.schema.paths["_sync"];
+        return !this.args.noSync && this.DbModel.schema["paths"]["_sync"];
     }
 
     protected _doSync(update: { [key: string]: any }): boolean {
@@ -121,7 +122,7 @@ class DocumentFacade<T extends Document> extends PlumFacade {
         return this.DbModel
             .findById(id)
             .exec()
-            .then(doc => (doc && !doc._deactivated) ? doc : null);
+            .then(doc => (doc && !doc["_deactivated"]) ? doc : null);
     }
 
     public async remove(conditions: { [key: string]: any } = {}): Promise<T[]> {
