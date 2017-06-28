@@ -11,6 +11,9 @@
     "clean": "node ./node_modules/.bin/gulp clean",
     "test": "node ./node_modules/.bin/gulp test"
   },
+  "engines": {
+    "node": ">=8"
+  },
   "repository": "https://github.com/tgorka/servicelychee.git",
   "author": "Tomasz Gorka <tomasz@gorka.org.pl>",
   "license": "MIT",

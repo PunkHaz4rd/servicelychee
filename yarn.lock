@@ -1756,7 +1756,7 @@ micromatch@^2.1.5, micromatch@^2.3.7:
 
 "microplum@https://github.com/tgorka/microplum":
   version "0.1.0"
-  resolved "https://github.com/tgorka/microplum#47e64f324b4079c12826bf0d27ab1fe4a4ba5c42"
+  resolved "https://github.com/tgorka/microplum#5055fe13a8a14f54ab63bcd92d73391f2025e6b6"
   dependencies:
     "@types/lodash" "^4.14.64"
     "@types/seneca" "^2.1.6"
@@ -2553,7 +2553,7 @@ serve-static@1.12.3:
 
 "servicelychee@https://github.com/tgorka/servicelychee":
   version "0.0.1"
-  resolved "https://github.com/tgorka/servicelychee#012e55c0d24e973d0a5f747a53b2b2c35de207dd"
+  resolved "https://github.com/tgorka/servicelychee#086918f6d73515d343832769c2faf8ae9c1bab55"
   dependencies:
     "@types/gulp" "^4.0.3"
     bluebird "^3.5.0"
