@@ -58,10 +58,8 @@ class DocumentFacade<T extends Document> extends PlumFacade {
         return model.save();
     }
 
-    public async update(conditions: { [key: string]: any }, update: { [key: string]: any }): Promise<T[]> {
-        this.prepareInputForWriting(update);
-        let models: T[] = await this.find(conditions);
-        return Promise.all(models.map(async model => {
+    protected async _update(model: T, update: { [key: string]: any }): Promise<T> {
+        if (model) {
             model.set(update);
             if (model.isModified()) {
                 await this._sync(model);
@@ -69,39 +67,27 @@ class DocumentFacade<T extends Document> extends PlumFacade {
             } else {
                 return Promise.resolve(model);
             }
-        }));
+        } else {
+            return this.create(update);
+        }
+    }
+
+    public async update(conditions: { [key: string]: any }, update: { [key: string]: any }): Promise<T[]> {
+        this.prepareInputForWriting(update);
+        let models: T[] = await this.find(conditions);
+        return Promise.all(models.map(async model => this._update(model, update)));
     }
 
     public async updateOne(conditions: { [key: string]: any }, update: { [key: string]: any }): Promise<T> {
         this.prepareInputForWriting(update);
         let model: T = await this.findOne(conditions);
-        if (model) {
-            model.set(update);
-            if (model.isModified()) {
-                await this._sync(model);
-                return model.save();
-            } else {
-                return Promise.resolve(model);
-            }
-        } else {
-            return this.create(update);
-        }
+        return this._update(model, update);
     }
 
     public async updateById(id: string, update: { [key: string]: any }): Promise<T> {
         this.prepareInputForWriting(update);
         let model = await this.findById(id);
-        if (model) {
-            model.set(update);
-            if (model.isModified()) {
-                await this._sync(model);
-                return model.save();
-            } else {
-                return Promise.resolve(model);
-            }
-        } else {
-            return this.create(update);
-        }
+        return this._update(model, update);
     }
 
     public async find(query: { [key: string]: any } = {}): Promise<T[]> { // returns [] of not found
