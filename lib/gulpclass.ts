@@ -45,6 +45,10 @@ export interface ServerConfig {
      * Should server be run in daemon mode
      */
     daemon: boolean;
+    /**
+     * Arguments for the server apps
+     */
+    args?: string;
 }
 
 /**
@@ -186,6 +190,7 @@ export default class Gulpfile {
 
             pm2.start({
                 script: this.config.path.index,
+                args: this.config.server.args,
                 name: `${this.config.name}`, // this is hack to fix the pm2 error for setting this as a reference
                 exec_mode: (this.isDevMode()) ? "fork" : "cluster", // ----> https://github.com/Unitech/PM2/blob/master/ADVANCED_README.md#schema
                 instances: (this.isDevMode()) ? 1 : this.config.server.concurrency,
