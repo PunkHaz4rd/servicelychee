@@ -41,6 +41,22 @@ class DocumentFacade<T extends Document> extends PlumFacade {
         return this.args.role;
     }
 
+    protected async _postOperation(input: T): Promise<T> {
+        return Promise.resolve(input);
+    }
+
+    protected async _postWriting(input: T): Promise<T> {
+        return this._postOperation(input);
+    }
+
+    protected async _postCreate(input: T): Promise<T> {
+        return this._postWriting(input);
+    }
+
+    protected async _postUpdate(input: T): Promise<T> {
+        return this._postWriting(input);
+    }
+
     protected prepareInputForWriting(input: { [key: string]: any }): void {
         input._modified = Date.now();
         if (this._doSync(input)) {
@@ -55,7 +71,7 @@ class DocumentFacade<T extends Document> extends PlumFacade {
         input._sync = (this.args.syncId) ? this.args.syncId : null;
         let model = new this.DbModel(input);
         await this._sync(model);
-        return model.save();
+        return model.save().then(this._postCreate.bind(this));
     }
 
     protected async _update(model: T, update: { [key: string]: any }): Promise<T> {
@@ -63,7 +79,7 @@ class DocumentFacade<T extends Document> extends PlumFacade {
             model.set(update);
             if (model.isModified()) {
                 await this._sync(model);
-                return model.save();
+                return model.save().then(this._postUpdate.bind(this));
             } else {
                 return Promise.resolve(model);
             }
