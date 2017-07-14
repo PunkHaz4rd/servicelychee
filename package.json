@@ -19,6 +19,7 @@
   "license": "MIT",
   "dependencies": {
     "@types/gulp": "^4.0.3",
+    "@types/lodash": "^4.14.68",
     "bluebird": "^3.5.0",
     "child_process": "^1.0.2",
     "del": "^2.2.2",
@@ -32,10 +33,11 @@
     "lodash": "^4.17.4",
     "microplum": "https://github.com/tgorka/microplum",
     "mongoose": "^4.10.5",
-    "pm2": "^2.4.6",
+    "pm2": "^2.5.0",
     "source-map-support": "^0.4.15"
   },
   "devDependencies": {
-    "servicelychee": "https://github.com/tgorka/servicelychee"
+    "servicelychee": "https://github.com/tgorka/servicelychee",
+    "typescript": "^2.4.1"
   }
 }

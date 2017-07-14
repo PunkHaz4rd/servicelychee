@@ -1,5 +1,6 @@
 import { PlumFacade, ValidationPlumError } from "microplum";
 import { Document, Model } from "mongoose";
+import { unescape } from "querystring";
 
 
 class DocumentFacade<T extends Document> extends PlumFacade {
@@ -7,11 +8,12 @@ class DocumentFacade<T extends Document> extends PlumFacade {
         super(act, args);
     }
 
-    protected async _callSync(id: string, data: { [key: string]: any } = {}): Promise<void> {
+    protected async _callSync(id: string, data: { [key: string]: any } = {}): Promise<any> {
         // empty no sync by default
+        return Promise.resolve();
     }
 
-    protected async _sync(model: T): Promise<void> {
+    protected async _sync(model: T): Promise<any> {
         if (this._hasSync() && !model["_sync"]) {
             let error = await model.validate();
             if (error) {
@@ -22,7 +24,7 @@ class DocumentFacade<T extends Document> extends PlumFacade {
             if (model && model.toObject) {
                 data[this._name()] = model.toObject();
             }
-            await this._callSync(model._id, data);
+            return this._callSync(model._id, data);
         }
         return Promise.resolve();
     }
@@ -70,7 +72,10 @@ class DocumentFacade<T extends Document> extends PlumFacade {
     public async create(input: { [key: string]: any }): Promise<T> {
         input._sync = (this.args.syncId) ? this.args.syncId : null;
         let model = new this.DbModel(input);
-        await this._sync(model);
+        let remoteData = await this._sync(model);
+        if (remoteData) {
+            model.set(remoteData);
+        }
         return model.save().then(this._postCreate.bind(this));
     }
 
