@@ -1,6 +1,5 @@
 import { PlumFacade, ValidationPlumError } from "microplum";
 import { Document, Model } from "mongoose";
-import { unescape } from "querystring";
 
 
 class DocumentFacade<T extends Document> extends PlumFacade {
@@ -20,10 +19,7 @@ class DocumentFacade<T extends Document> extends PlumFacade {
                 console.log(`[Validation ERR] DB validation <= ${JSON.stringify(error)}`);
                 throw new ValidationPlumError({}, "Db validation errors");
             }
-            let data = {};
-            if (model && model.toObject) {
-                data[this._name()] = model.toObject();
-            }
+            let data: any = (model && model.toObject) ? model.toObject() : {};
             return this._callSync(model._id, data);
         }
         return Promise.resolve();
