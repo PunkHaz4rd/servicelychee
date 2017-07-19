@@ -77,7 +77,9 @@ class DocumentFacade<T extends Document> extends PlumFacade {
 
     protected async _update(model: T, update: { [key: string]: any }): Promise<T> {
         if (model) {
-            model.set(update);
+            for(let [key, value] of Object.entries(update)) {
+                model.set(key, value);
+            }
             if (model.isModified()) {
                 await this._sync(model);
                 return model.save().then(this._postUpdate.bind(this));
