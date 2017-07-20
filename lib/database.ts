@@ -69,8 +69,10 @@ class DocumentFacade<T extends Document> extends PlumFacade {
             }
             if (model.isModified()) {
                 let remoteData = await this._sync(model);
-                for(let [key, value] of Object.entries(remoteData)) {
-                    model.set(key, value);
+                if (remoteData) {
+                    for (let [key, value] of Object.entries(remoteData)) {
+                        model.set(key, value);
+                    }
                 }
 
                 return model.save();
