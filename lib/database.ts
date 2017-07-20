@@ -31,28 +31,12 @@ class DocumentFacade<T extends Document> extends PlumFacade {
 
     protected _doSync(update: { [key: string]: any }): boolean {
         return this._hasSync() && Object.keys(update)
-                .filter(key => !key.startsWith('_'))
+                .filter(key => !key.startsWith("_") || key === "_deactivated")
                 .length > 0;
     }
 
     protected _name(): string {
         return this.args.role;
-    }
-
-    protected async _postOperation(input: T): Promise<T> {
-        return Promise.resolve(input);
-    }
-
-    protected async _postWriting(input: T): Promise<T> {
-        return this._postOperation(input);
-    }
-
-    protected async _postCreate(input: T): Promise<T> {
-        return this._postWriting(input);
-    }
-
-    protected async _postUpdate(input: T): Promise<T> {
-        return this._postWriting(input);
     }
 
     protected prepareInputForWriting(input: { [key: string]: any }): void {
@@ -70,9 +54,12 @@ class DocumentFacade<T extends Document> extends PlumFacade {
         let model = new this.DbModel(input);
         let remoteData = await this._sync(model);
         if (remoteData) {
-            model.set(remoteData);
+            for(let [key, value] of Object.entries(remoteData)) {
+                model.set(key, value);
+            }
+            //model.set(remoteData);
         }
-        return model.save().then(this._postCreate.bind(this));
+        return model.save();
     }
 
     protected async _update(model: T, update: { [key: string]: any }): Promise<T> {
@@ -81,8 +68,12 @@ class DocumentFacade<T extends Document> extends PlumFacade {
                 model.set(key, value);
             }
             if (model.isModified()) {
-                await this._sync(model);
-                return model.save().then(this._postUpdate.bind(this));
+                let remoteData = await this._sync(model);
+                for(let [key, value] of Object.entries(remoteData)) {
+                    model.set(key, value);
+                }
+
+                return model.save();
             } else {
                 return Promise.resolve(model);
             }
