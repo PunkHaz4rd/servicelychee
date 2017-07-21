@@ -49,6 +49,10 @@ export interface ServerConfig {
      * Arguments for the server apps
      */
     args?: string;
+    /**
+     * Force clustr mode even on dev
+     */
+    forceClusterMode: boolean;
 }
 
 /**
@@ -103,6 +107,7 @@ export const DEFAULT_CONFIG: GulpConfig = {
         concurrency: process.env.WEB_CONCURRENCY || -1,
         maxMemory: process.env.WEB_MEMORY || 512,
         maxRestarts: 10,
+        forceClusterMode: false,
         daemon: false,
     },
 };
@@ -192,7 +197,7 @@ export default class Gulpfile {
                 script: this.config.path.index,
                 args: this.config.server.args,
                 name: `${this.config.name}`, // this is hack to fix the pm2 error for setting this as a reference
-                exec_mode: (this.isDevMode()) ? "fork" : "cluster", // ----> https://github.com/Unitech/PM2/blob/master/ADVANCED_README.md#schema
+                exec_mode: (!this.config.server.forceClusterMode && this.isDevMode()) ? "fork" : "cluster", // ----> https://github.com/Unitech/PM2/blob/master/ADVANCED_README.md#schema
                 instances: (this.isDevMode()) ? 1 : this.config.server.concurrency,
                 max_memory_restart: this.config.server.maxMemory + "M", // Auto-restart if process takes more than XXmo
                 maxRestarts: this.config.server.maxRestarts,
