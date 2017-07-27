@@ -20,6 +20,7 @@
   "dependencies": {
     "@types/gulp": "^4.0.3",
     "@types/lodash": "^4.14.68",
+    "@types/mongoose": "^4.7.19",
     "bluebird": "^3.5.0",
     "child_process": "^1.0.2",
     "del": "^2.2.2",
@@ -32,7 +33,7 @@
     "gulpclass": "^0.1.2",
     "lodash": "^4.17.4",
     "microplum": "https://github.com/tgorka/microplum",
-    "mongoose": "^4.10.5",
+    "mongoose": "^4.11.4",
     "pm2": "^2.5.0",
     "source-map-support": "^0.4.15"
   },
