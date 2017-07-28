@@ -7,12 +7,12 @@ class DocumentFacade<T extends Document> extends PlumFacade {
         super(act, args);
     }
 
-    protected async _callSync(id: string, data: { [key: string]: any } = {}): Promise<any> {
+    protected async _callSync(id: string, data: { [key: string]: any } = {}, current?: { [key: string]: any }): Promise<any> {
         // empty no sync by default
         return Promise.resolve();
     }
 
-    protected async _sync(model: T): Promise<any> {
+    protected async _sync(model: T, current?: { [key: string]: any }): Promise<any> {
         if (this._hasSync() && !model["_sync"]) {
             let error = await model.validate();
             if (error) {
@@ -20,7 +20,7 @@ class DocumentFacade<T extends Document> extends PlumFacade {
                 throw new ValidationPlumError({}, "Db validation errors");
             }
             let data: any = (model && model.toObject) ? model.toObject() : {};
-            return this._callSync(model._id, data);
+            return this._callSync(model._id, data, current);
         }
         return Promise.resolve();
     }
@@ -52,7 +52,7 @@ class DocumentFacade<T extends Document> extends PlumFacade {
     public async create(input: { [key: string]: any }): Promise<T> {
         input._sync = (this.args.syncId) ? this.args.syncId : null;
         let model = new this.DbModel(input);
-        let remoteData = await this._sync(model);
+        let remoteData = await this._sync(model, null);
         if (remoteData) {
             for(let [key, value] of Object.entries(remoteData)) {
                 model.set(key, value);
@@ -64,11 +64,12 @@ class DocumentFacade<T extends Document> extends PlumFacade {
 
     protected async _update(model: T, update: { [key: string]: any }): Promise<T> {
         if (model) {
+            let current = (model && model.toObject) ? model.toObject() : {};
             for(let [key, value] of Object.entries(update)) {
                 model.set(key, value);
             }
             if (model.isModified()) {
-                let remoteData = await this._sync(model);
+                let remoteData = await this._sync(model, current);
                 if (remoteData) {
                     for (let [key, value] of Object.entries(remoteData)) {
                         model.set(key, value);
