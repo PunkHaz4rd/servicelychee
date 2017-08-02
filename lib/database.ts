@@ -1,5 +1,6 @@
 import { PlumFacade, ValidationPlumError } from "microplum";
 import { Document, Model } from "mongoose";
+import * as flat from "flat";
 
 
 class DocumentFacade<T extends Document> extends PlumFacade {
@@ -54,7 +55,8 @@ class DocumentFacade<T extends Document> extends PlumFacade {
         let model = new this.DbModel(input);
         let remoteData = await this._sync(model, null);
         if (remoteData) {
-            for(let [key, value] of Object.entries(remoteData)) {
+            let flattenData: any = flat.flatten(remoteData);
+            for(let [key, value] of Object.entries(flattenData)) {
                 model.set(key, value);
             }
             //model.set(remoteData);
@@ -71,7 +73,8 @@ class DocumentFacade<T extends Document> extends PlumFacade {
             if (model.isModified()) {
                 let remoteData = await this._sync(model, current);
                 if (remoteData) {
-                    for (let [key, value] of Object.entries(remoteData)) {
+                    let flattenData: any = flat.flatten(remoteData);
+                    for (let [key, value] of Object.entries(flattenData)) {
                         model.set(key, value);
                     }
                 }
