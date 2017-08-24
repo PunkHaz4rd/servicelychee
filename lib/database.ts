@@ -107,17 +107,68 @@ class DocumentFacade<T extends Document> extends PlumFacade {
     }
 
     public async find(query: { [key: string]: any } = {}): Promise<T[]> { // returns [] of not found
+        let limit: number = null;
+        let skip: number = null;
+        let sort = null;
+        let select = null;
+
         query._deactivated = null;
-        return this.DbModel
-            .find(query)
-            .exec();
+
+        if (query.hasOwnProperty('$limit')) {
+          limit = query.$limit;
+          delete query['$limit'];
+        }
+        if (query.hasOwnProperty('$skip')) {
+          skip = query.$skip;
+          delete query['$skip'];
+        }
+        if (query.hasOwnProperty('$sort')) {
+          sort = query.$sort;
+          delete query['$sort'];
+        }
+        if (query.hasOwnProperty('$select')) {
+          select = query.$select;
+          delete query['$select'];
+        }
+        let result = this.DbModel.find(query)
+
+        if (skip) {
+          result = result.skip(skip)
+        }
+        if (limit) {
+          result = result.limit(limit)
+        }
+        if (sort) {
+          result = result.sort(sort)
+        }
+        if (select) {
+          result = result.select(select)
+        }
+        return result.exec();
     }
 
     public async findOne(query: { [key: string]: any } = {}): Promise<T> { // returns null if not found
+
+        let sort = null;
+        let select = null;
+
         query._deactivated = null;
-        return this.DbModel
-            .findOne(query)
-            .exec();
+        if (query.hasOwnProperty('$sort')) {
+          sort = query.$sort;
+          delete query['$sort'];
+        }
+        if (query.hasOwnProperty('$select')) {
+          select = query.$select;
+          delete query['$select'];
+        }
+        let result = this.DbModel.findOne(query)
+        if (sort) {
+          result = result.sort(sort)
+        }
+        if (select) {
+          result = result.select(select)
+        }
+        return result.exec();
     }
 
     public async findById(id: string): Promise<T> {
