@@ -209,44 +209,8 @@ class DocumentFacade<T extends Document> extends PlumFacade {
     }
 
     public async count(query: { [key: string]: any } = {}): Promise<number> { // returns [] of not found
-        let limit: number = null;
-        let skip: number = null;
-        let sort = null;
-        let select = null;
-
         query._deactivated = null;
-
-        if (query.hasOwnProperty('$limit')) {
-            limit = query.$limit;
-            delete query['$limit'];
-        }
-        if (query.hasOwnProperty('$skip')) {
-            skip = query.$skip;
-            delete query['$skip'];
-        }
-        if (query.hasOwnProperty('$sort')) {
-            sort = query.$sort;
-            delete query['$sort'];
-        }
-        if (query.hasOwnProperty('$select')) {
-            select = query.$select;
-            delete query['$select'];
-        }
-        let result = this.DbModel.find(query)
-
-        if (sort) {
-            result = result.sort(sort)
-        }
-        if (select) {
-            result = result.select(select)
-        }
-        if (skip) {
-            result = result.skip(skip)
-        }
-        if (limit) {
-            result = result.limit(limit)
-        }
-        return result.count();
+        return this.DbModel.count(query);
     }
 
 }
