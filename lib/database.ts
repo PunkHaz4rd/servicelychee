@@ -132,17 +132,17 @@ class DocumentFacade<T extends Document> extends PlumFacade {
         }
         let result = this.DbModel.find(query)
 
-        if (skip) {
-          result = result.skip(skip)
-        }
-        if (limit) {
-          result = result.limit(limit)
-        }
         if (sort) {
           result = result.sort(sort)
         }
         if (select) {
           result = result.select(select)
+        }
+        if (skip) {
+          result = result.skip(skip)
+        }
+        if (limit) {
+          result = result.limit(limit)
         }
         return result.exec();
     }
