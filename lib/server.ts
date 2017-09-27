@@ -49,6 +49,7 @@ export class Server {
             amqpUrl: this.config.amqp.url,
             debugUserId: this.config.debugUserId,
         });
+        this.initMiddleware()
         this.microplum.client();
         this.dbConnection();
         this.routes();
