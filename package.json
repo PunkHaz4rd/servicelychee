@@ -33,7 +33,6 @@
     "gulp-watch": "^4.3.11",
     "gulpclass": "^0.1.2",
     "lodash": "^4.17.4",
-    "logpapaya": "https://noam1610@bitbucket.org/labacario/logpapaya.git",
     "microplum": "https://github.com/tgorka/microplum",
     "mongoose": "^4.11.4",
     "pm2": "^2.5.0",
