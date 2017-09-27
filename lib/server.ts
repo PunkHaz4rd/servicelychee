@@ -49,7 +49,9 @@ export class Server {
             amqpUrl: this.config.amqp.url,
             debugUserId: this.config.debugUserId,
         });
+        logging.info("LOGGING WINSTON INIT before")
         this.initMiddleware()
+        logging.info("LOGGING WINSTON INIT after")
         this.microplum.client();
         this.dbConnection();
         this.routes();
@@ -80,6 +82,7 @@ export class Server {
             app: this.config.app || "default-app",
             env: process.env.NODE_ENV || "default-env",
         });
+        logging.info("LOGGING WINSTON INIT")
     }
 
     /**
