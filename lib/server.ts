@@ -9,6 +9,10 @@ import * as express from "express";
 import { default as Service, Microplum } from "microplum";
 
 
+//LOGGING
+import { logging } from "logpapaya";
+
+
 /**
  * The server main class
  */
@@ -68,6 +72,13 @@ export class Server {
      */
     public routes(): void {
         //this.microplum.useService(seed);
+    }
+
+    public initMiddleware(): void {
+        logging.init({
+            app: this.config.app || "default-app",
+            env: process.env.NODE_ENV || "default-env",
+        });
     }
 
     /**
