@@ -1773,7 +1773,7 @@ logdna@^1.4.0:
 
 "logpapaya@https://noam1610@bitbucket.org/labacario/logpapaya.git":
   version "1.0.0"
-  resolved "https://noam1610@bitbucket.org/labacario/logpapaya.git#6416d5ded970ff648b2d2ee1db0bdbc0a6c999c4"
+  resolved "https://noam1610@bitbucket.org/labacario/logpapaya.git#5d8cd90d7c0dc80af9fc69c0648cb6b5c82ec9b6"
   dependencies:
     gulp "^3.9.1"
     logdna "^1.4.0"
