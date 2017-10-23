@@ -163,7 +163,7 @@ export default class Gulpfile {
     public async _envFromMap(map: {[key:string]: string}): Promise<{}> {
         console.log(`Setting environment for ${JSON.stringify(map)}`);
 
-        let envs = await env({
+        let envs = await (<any>env)({
             vars: map,
         });
         return Promise.resolve(envs);
@@ -175,7 +175,7 @@ export default class Gulpfile {
             return Promise.resolve({});
         } else {
             console.log(`Reading environment from ${path}`);
-            let envs = await env({
+            let envs = await (<any>env)({
                 file: path,
                 handler: (content: string, filename: string): {} => {
                     let envs = eval(this.tsProject.typescript.transpile(content));
