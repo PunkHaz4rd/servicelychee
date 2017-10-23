@@ -1,5 +1,6 @@
 import { Gulpclass, SequenceTask, Task } from "gulpclass/Decorators";
 import { spawn } from "child_process";
+import { StartOptions } from "pm2";
 
 import * as gulp from "gulp";
 import * as del from "del";
@@ -16,12 +17,11 @@ import * as gitBranch from "git-branch";
 import * as gitRepoName from "git-repo-name";
 import * as gitUserEmail from "git-user-email";
 import * as gitRemoteUserName from "git-username";
-import {async} from "q";
 
 
 export interface PortConfig {
-    web: number;
-    debug: number;
+    web: string | number;
+    debug: string | number;
 }
 
 export interface PathConfig {
@@ -40,15 +40,15 @@ export interface ServerConfig {
      * Web server process numbers
      * Set by Heroku or -1 to scale to max cpu core -1
      */
-    concurrency: number;
+    concurrency: string | number;
     /**
      * Max RAM memory when server will be reloaded
      */
-    maxMemory: number;
+    maxMemory: string | number;
     /**
      * The maximum number of times in a row a script will be restarted if it exits in less than minUptime
      */
-    maxRestarts: number;
+    maxRestarts: string | number;
     /**
      * Should server be run in daemon mode
      */
@@ -163,7 +163,7 @@ export default class Gulpfile {
     public async _envFromMap(map: {[key:string]: string}): Promise<{}> {
         console.log(`Setting environment for ${JSON.stringify(map)}`);
 
-        let envs = await (<any>env)({
+        let envs = await env({
             vars: map,
         });
         return Promise.resolve(envs);
@@ -175,7 +175,7 @@ export default class Gulpfile {
             return Promise.resolve({});
         } else {
             console.log(`Reading environment from ${path}`);
-            let envs = await (<any>env)({
+            let envs = await env({
                 file: path,
                 handler: (content: string, filename: string): {} => {
                     let envs = eval(this.tsProject.typescript.transpile(content));
@@ -204,15 +204,15 @@ export default class Gulpfile {
         let localPrefix = `./${prefix}`;
         let branch = (process.env.GIT_BRANCH in ["production", "test"]) ? process.env.GIT_BRANCH : "development";
 
-        this._envFromNamespace(`${globalPrefix}.${branch}.${process.env.GIT_USER}.${process.env.GIT_REPOSITORY}`);
-        this._envFromNamespace(`${globalPrefix}.${branch}.${process.env.GIT_USER}`);
-        this._envFromNamespace(`${globalPrefix}.${process.env.GIT_USER}.${process.env.GIT_REPOSITORY}`);
-        this._envFromNamespace(`${globalPrefix}.${process.env.GIT_USER}`);
-        this._envFromNamespace(`${globalPrefix}.${branch}.${process.env.GIT_REPOSITORY}`);
-        this._envFromNamespace(`${globalPrefix}.${branch}`);
-        this._envFromNamespace(`${globalPrefix}.${process.env.GIT_REPOSITORY}`);
-        this._envFromNamespace(globalPrefix);
-        this._envFromNamespace(localPrefix);
+        await this._envFromNamespace(`${globalPrefix}.${branch}.${process.env.GIT_USER}.${process.env.GIT_REPOSITORY}`);
+        await this._envFromNamespace(`${globalPrefix}.${branch}.${process.env.GIT_USER}`);
+        await this._envFromNamespace(`${globalPrefix}.${process.env.GIT_USER}.${process.env.GIT_REPOSITORY}`);
+        await this._envFromNamespace(`${globalPrefix}.${process.env.GIT_USER}`);
+        await this._envFromNamespace(`${globalPrefix}.${branch}.${process.env.GIT_REPOSITORY}`);
+        await this._envFromNamespace(`${globalPrefix}.${branch}`);
+        await this._envFromNamespace(`${globalPrefix}.${process.env.GIT_REPOSITORY}`);
+        await this._envFromNamespace(globalPrefix);
+        await this._envFromNamespace(localPrefix);
     }
 
     @Task("env:server")
@@ -264,7 +264,11 @@ export default class Gulpfile {
 
     @Task("server:stop")
     public async serverStop(): Promise<void> {
-        return pm2.killDaemon();
+        return pm2.killDaemon((err: any, apps): void => {
+            if (err) {
+                throw err;
+            }
+        });
     }
 
     @Task("server")
@@ -280,7 +284,7 @@ export default class Gulpfile {
                 process.exit(2);
             }
 
-            pm2.start({
+            pm2.start(<StartOptions>{
                 script: this.config.path.index,
                 args: this.config.server.args,
                 name: `${this.config.name}`, // this is hack to fix the pm2 error for setting this as a reference
@@ -296,7 +300,7 @@ export default class Gulpfile {
                 cwd: this.config.path.workingDir,
                 interpreterArgs: [`--inspect=${this.config.port.debug}`],
                 post_update: ["npm install"], // Commands to execute once we do a pull from Keymetrics
-                watch: (this.isDevMode()) ? this.runningSrc : undefined,
+                watch: this.isDevMode(),//(this.isDevMode()) ? this.runningSrc : undefined,
                 ignore_watch: (this.isDevMode()) ? this.ignoreRunningSrc : undefined,
                 watch_options: (this.isDevMode()) ? {
                     followSymlinks: false

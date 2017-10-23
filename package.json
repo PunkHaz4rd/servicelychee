@@ -45,6 +45,7 @@
     "source-map-support": "^0.4.15"
   },
   "devDependencies": {
-    "typescript": "^2.4.1"
+    "typescript": "^2.4.1",
+    "servicelychee": "https://github.com/tgorka/servicelychee"
   }
 }
