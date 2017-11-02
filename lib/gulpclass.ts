@@ -215,6 +215,12 @@ export default class Gulpfile {
         await this._envFromNamespace(localPrefix);
     }
 
+    @Task("env:get")
+    public async envGet(): Promise<String> {
+        await this.envServer();
+        return Promise.resolve(process.env.GIT_BRANCH);
+    }
+
     @Task("env:server")
     public async envServer(): Promise<void> {
         return this.env("config.server");
