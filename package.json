@@ -39,7 +39,7 @@
     "gulp-watch": "^4.3.11",
     "gulpclass": "^0.1.2",
     "lodash": "^4.17.4",
-    "microplum": "https://github.com/tgorka/microplum",
+    "microplum": "git+https://github.com/tgorka/microplum.git",
     "mongoose": "^4.11.4",
     "pm2": "^2.5.0",
     "source-map-support": "^0.4.15"

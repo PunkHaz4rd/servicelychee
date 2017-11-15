@@ -193,16 +193,19 @@ export default class Gulpfile {
     }
 
     public async env(prefix: string): Promise<void> {
+        let realBranch = gitBranch.sync();
+        let branch = (realBranch in ["production", "test"]) ? realBranch : "development";
+        let globalPrefix = `${this.config.config}/${prefix}`;
+        let localPrefix = `./${prefix}`;
+
         this._envFromMap({
             GIT_USER_EMAIL: gitUserEmail(),
             GIT_USER_NAME: gitUserName(),
             GIT_USER: gitRemoteUserName(),
             GIT_REPOSITORY: gitRepoName.sync(),
-            GIT_BRANCH: gitBranch.sync(),
+            GIT_BRANCH: realBranch,
+            ENV_BRANCH: branch,
         });
-        let globalPrefix = `${this.config.config}/${prefix}`;
-        let localPrefix = `./${prefix}`;
-        let branch = (process.env.GIT_BRANCH in ["production", "test"]) ? process.env.GIT_BRANCH : "development";
 
         await this._envFromNamespace(`${globalPrefix}.${branch}.${process.env.GIT_USER}.${process.env.GIT_REPOSITORY}`);
         await this._envFromNamespace(`${globalPrefix}.${branch}.${process.env.GIT_USER}`);
@@ -215,10 +218,12 @@ export default class Gulpfile {
         await this._envFromNamespace(localPrefix);
     }
 
-    @Task("env:get")
+    @Task("env:export")
     public async envGet(): Promise<String> {
         await this.envServer();
-        return Promise.resolve(process.env.GIT_BRANCH);
+        return Promise.resolve(Object.keys(process.env)
+            .map(envVariable => `export ${envVariable}="${process.env[envVariable]}"`)
+            .join(" && "));
     }
 
     @Task("env:server")
