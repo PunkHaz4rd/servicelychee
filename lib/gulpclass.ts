@@ -17,7 +17,10 @@ import * as gitBranch from "git-branch";
 import * as gitRepoName from "git-repo-name";
 import * as gitUserEmail from "git-user-email";
 import * as gitRemoteUserName from "git-username";
+import * as minimist from "minimist";
 
+
+const argv = minimist(process.argv.slice(2));
 
 export interface PortConfig {
     web: string | number;
@@ -137,7 +140,7 @@ export default class Gulpfile {
         if (config) {
             _.merge(DEFAULT_CONFIG, config);
         }
-        console.log(`Start working for config: ${JSON.stringify(DEFAULT_CONFIG)}`);
+        if (!argv.silent) console.log(`Start working for config: ${JSON.stringify(DEFAULT_CONFIG)}`);
         return Gulpfile;
     };
 
@@ -161,7 +164,7 @@ export default class Gulpfile {
     }
 
     public async _envFromMap(map: {[key:string]: string}): Promise<{}> {
-        console.log(`Setting environment for ${JSON.stringify(map)}`);
+        if (!argv.silent) console.log(`Setting environment for ${JSON.stringify(map)}`);
 
         let envs = await env({
             vars: map,
@@ -174,13 +177,13 @@ export default class Gulpfile {
         if (!(await this.fileExists(path))) {
             return Promise.resolve({});
         } else {
-            console.log(`Reading environment from ${path}`);
+            if (!argv.silent) console.log(`Reading environment from ${path}`);
             let envs = await env({
                 file: path,
                 handler: (content: string, filename: string): {} => {
                     let envs = eval(this.tsProject.typescript.transpile(content));
                     Object.keys(envs).forEach(key => {
-                        console.log('env', key, envs[key])
+                        if (!argv.silent) console.log('env', key, envs[key])
                         if (process.env[key]) {
                             envs[key] = process.env[key];
                         }
@@ -219,11 +222,14 @@ export default class Gulpfile {
     }
 
     @Task("env:export")
-    public async envGet(): Promise<String> {
+    public async envExport(): Promise<void> {
+        let originalEnvVariables = Object.keys(process.env);
         await this.envServer();
-        return Promise.resolve(Object.keys(process.env)
-            .map(envVariable => `export ${envVariable}="${process.env[envVariable]}"`)
-            .join(" && "));
+        console.log(Object.keys(process.env)
+            .filter(envVariable => !originalEnvVariables.includes(envVariable))
+            .map(envVariable => `export ${envVariable}=${process.env[envVariable]}`)
+            .join("\n"));
+        console.log("\n# For setting environments run: eval $(gulp env:export --silent)")
     }
 
     @Task("env:server")
@@ -249,7 +255,7 @@ export default class Gulpfile {
     @Task("watch")
     public async watch(): Promise<void> {
         return watch(this.config.path.typescript, async (): Promise<void> => {
-            console.log("TypeScript source changed. Transpiling...");
+            if (!argv.silent) console.log("TypeScript source changed. Transpiling...");
             return this.typescript();
         });
     }
@@ -269,7 +275,7 @@ export default class Gulpfile {
 
     @Task("build")
     public async build(): Promise<void> {
-        console.log(`build for app: ${this.config.name}`);
+        if (!argv.silent) console.log(`build for app: ${this.config.name}`);
         return this.typescript();
     }
 
@@ -291,7 +297,7 @@ export default class Gulpfile {
 
         return pm2.connect(this.config.server.daemon, (err: any): void => {
             if (err) {
-                console.error("[PM2]:"+err);
+                if (!argv.silent) console.error("[PM2]:"+err);
                 process.exit(2);
             }
 
@@ -325,11 +331,11 @@ export default class Gulpfile {
 
                 // Display logs in standard output
                 pm2.launchBus((err: any, bus): void => {
-                    console.log("[PM2] Log streaming started");
+                    if (!argv.silent) console.log("[PM2] Log streaming started");
 
                     bus.on("log:out", (packet): void => {
                         // stream the logs
-                        console.log("[App:%s] %s", packet.process.name, packet.data);
+                        if (!argv.silent) console.log("[App:%s] %s", packet.process.name, packet.data);
                     });
 
                     bus.on("log:err", (packet): void => {
