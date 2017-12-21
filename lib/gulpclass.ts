@@ -196,7 +196,19 @@ export default class Gulpfile {
     }
 
     public async env(prefix: string): Promise<void> {
-        let realBranch = gitBranch.sync();
+        let realBranch = "production";
+        try {
+            let realBranch = gitBranch.sync();
+        } catch {
+
+        }
+        let repoName = "app";
+        try {
+            let repoName = gitRepoName.sync();
+        } catch {
+
+        }
+
         let branch = (realBranch in ["production", "test"]) ? realBranch : "development";
         let globalPrefix = `${this.config.config}/${prefix}`;
         let localPrefix = `./${prefix}`;
@@ -205,7 +217,7 @@ export default class Gulpfile {
             GIT_USER_EMAIL: gitUserEmail(),
             GIT_USER_NAME: gitUserName(),
             GIT_USER: gitRemoteUserName(),
-            GIT_REPOSITORY: gitRepoName.sync(),
+            GIT_REPOSITORY: repoName,
             GIT_BRANCH: realBranch,
             ENV_BRANCH: branch,
         });
