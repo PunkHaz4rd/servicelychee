@@ -39,14 +39,14 @@
     "gulp-watch": "^4.3.11",
     "gulpclass": "^0.1.2",
     "lodash": "4.17.5",
-    "microplum": "git+https://github.com/tgorka/microplum.git",
+    "microplum": "git+https://github.com/PunkHaz4rd/microplum.git",
     "minimist": "^1.2.0",
     "mongoose": "^4.11.4",
     "pm2": "^2.5.0",
     "source-map-support": "^0.4.15"
   },
   "devDependencies": {
-    "servicelychee": "git+https://github.com/tgorka/servicelychee.git",
+    "servicelychee": "git+https://github.com/PunkHaz4rd/servicelychee.git",
     "typescript": "^2.4.1"
   }
 }
